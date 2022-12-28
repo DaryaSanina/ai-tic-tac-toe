@@ -1,0 +1,4 @@
+X_WIN = 1
+O_WIN = -1
+DRAW = 0
+GAME_CONTINUES = 2
