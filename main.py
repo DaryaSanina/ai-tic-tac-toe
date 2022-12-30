@@ -1,6 +1,7 @@
 import pygame
 from states import X_WIN, O_WIN, DRAW, GAME_CONTINUES
 from classes import Game
+from ai import min_value
 
 pygame.init()
 
@@ -13,7 +14,7 @@ FONT = pygame.font.SysFont('Consolas', 64)
 game = Game()
 
 
-def draw_grid(surface):
+def draw_grid(surface: pygame.surface) -> None:
     line_width = 5
     pygame.draw.line(surface, WHITE_COLOR, (SIZE[0] // 3, 0), (SIZE[0] // 3, SIZE[1]), line_width)
     pygame.draw.line(surface, WHITE_COLOR, (SIZE[0] // 3 * 2, 0), (SIZE[0] // 3 * 2, SIZE[1]), line_width)
@@ -21,7 +22,7 @@ def draw_grid(surface):
     pygame.draw.line(surface, WHITE_COLOR, (0, SIZE[1] // 3 * 2), (SIZE[0], SIZE[1] // 3 * 2), line_width)
 
 
-def draw_x(surface, cell_x_, cell_y_):
+def draw_x(surface: pygame.surface, cell_x_: int, cell_y_: int) -> None:
     line_width = 10
     x0 = cell_x_ * (SIZE[0] // 3) + line_width
     y0 = cell_y_ * (SIZE[1] // 3) + line_width
@@ -31,7 +32,7 @@ def draw_x(surface, cell_x_, cell_y_):
     pygame.draw.line(surface, WHITE_COLOR, (x1, y0), (x0, y1), line_width)
 
 
-def draw_o(surface, cell_x_, cell_y_):
+def draw_o(surface: pygame.surface, cell_x_: int, cell_y_: int) -> None:
     line_width = 10
     x0 = cell_x_ * (SIZE[0] // 3) + 2 * line_width
     y0 = cell_y_ * (SIZE[1] // 3) + 2 * line_width
@@ -40,14 +41,14 @@ def draw_o(surface, cell_x_, cell_y_):
     pygame.draw.circle(surface, WHITE_COLOR, ((x0 + x1) // 2, (y0 + y1) // 2), SIZE[0] // 3 // 2, line_width)
 
 
-def make_move(x, y):
-    if game.is_empty(x, y):
-        if game.moves_count % 2 == 0:  # X turn
-            game.field[y][x] = 'X'
+def make_move(player: str, x: int, y: int) -> None:
+    if game.is_empty(x, y):  # The cell is empty
+        if player == 'X':  # It's X's turn
             draw_x(screen, x, y)
-        else:  # O turn
-            game.field[y][x] = 'O'
+        else:  # It's O's turn
             draw_o(screen, x, y)
+
+        game.field[x][y] = player
         game.moves_count += 1
 
 
@@ -62,11 +63,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # The user clicks the exit button
             running = False
-        if event.type == pygame.MOUSEBUTTONUP and game.state == "Game continues":
+        if event.type == pygame.MOUSEBUTTONUP and game.state == GAME_CONTINUES:
             pos = pygame.mouse.get_pos()
             cell_x = pos[0] // (SIZE[0] // 3)
             cell_y = pos[1] // (SIZE[1] // 3)
-            make_move(cell_x, cell_y)
+            make_move('X', cell_x, cell_y)
 
     game.update_state()
     if game.state != GAME_CONTINUES:
@@ -80,5 +81,9 @@ while running:
         text_rect = text.get_rect()
         text_rect.center = (SIZE[0] // 2, SIZE[1] // 2)
         screen.blit(text, text_rect)
+
+    if game.moves_count % 2 != 0:  # It's O's move
+        min_value_, action = min_value(game, 1)
+        make_move(action.player, action.cell_x, action.cell_y)
 
     pygame.display.flip()
