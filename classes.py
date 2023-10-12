@@ -37,16 +37,13 @@ class Game:
         :return: whether the cell is empty
         """
 
-        return True if self.field[x][y] == '' else False
+        return not self.field[x][y]
 
     def player(self) -> str:
         """
         :return: who's turn it is
         """
-        if self.moves_count % 2 == 0:
-            return 'X'
-        else:
-            return 'O'
+        return 'X' if not self.moves_count % 2 else 'O'
 
     def update_state(self) -> None:
         """
